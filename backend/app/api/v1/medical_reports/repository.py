@@ -12,9 +12,11 @@ class MedicalReportRepository:
                     id=report_id,
                     user_id=report_doc["user_id"],
                     title=report_doc["title"],
+                    file_name=report_doc.get("file_name") or report_doc.get("title"),
                     file_path=report_doc.get("file_path"),
                     file_type=report_doc.get("file_type"),
                     upload_date=report_doc.get("upload_date"),
+                    raw_text=report_doc.get("raw_text", ""),
                     health_score=report_doc.get("health_score", 90),
                     biomarkers=report_doc.get("biomarkers", {}),
                     risk_assessment=report_doc.get("risk_assessment", []),
@@ -22,11 +24,13 @@ class MedicalReportRepository:
                     summary=report_doc.get("summary", "")
                 )
                 session.add(report)
+                # Flush report first so PostgreSQL foreign key constraint is satisfied for health_record
+                await session.flush()
 
                 health_record = HealthRecord(
                     id=f"{report_id}_hr",
                     user_id=report_doc["user_id"],
-                    report_id=report_id,
+                    report_id=report.id,
                     health_score=report_doc.get("health_score", 90),
                     risk_assessment=report_doc.get("risk_assessment", []),
                     biomarkers=report_doc.get("biomarkers", {}),

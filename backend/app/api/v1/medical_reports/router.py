@@ -26,17 +26,17 @@ async def upload_medical_report(
     )
     
     return ReportResponse(
-        id=report_doc["_id"],
-        user_id=report_doc["user_id"],
-        title=report_doc["title"],
-        file_name=report_doc["file_name"],
-        upload_date=report_doc["upload_date"],
-        raw_text=report_doc["raw_text"],
-        biomarkers=report_doc["biomarkers"],
-        health_score=report_doc["health_score"],
-        risk_assessment=report_doc["risk_assessment"],
-        recommendations=report_doc["recommendations"],
-        summary=report_doc["summary"]
+        id=str(report_doc.get("_id") or report_doc.get("id")),
+        user_id=str(report_doc["user_id"]),
+        title=str(report_doc["title"]),
+        file_name=str(report_doc.get("file_name") or report_doc.get("title") or file.filename),
+        upload_date=str(report_doc["upload_date"]),
+        raw_text=str(report_doc.get("raw_text", "")),
+        biomarkers=report_doc.get("biomarkers", {}),
+        health_score=int(report_doc.get("health_score", 90)),
+        risk_assessment=report_doc.get("risk_assessment", []),
+        recommendations=report_doc.get("recommendations", []),
+        summary=str(report_doc.get("summary", ""))
     )
 
 @router.get("/", response_model=List[ReportResponse])
@@ -44,17 +44,17 @@ async def list_reports(current_user: UserResponse = Depends(get_current_user)):
     reports = await MedicalReportRepository.get_user_reports(current_user.id)
     return [
         ReportResponse(
-            id=r["_id"],
-            user_id=r["user_id"],
-            title=r["title"],
-            file_name=r["file_name"],
-            upload_date=r["upload_date"],
-            raw_text=r["raw_text"],
-            biomarkers=r["biomarkers"],
-            health_score=r["health_score"],
-            risk_assessment=r["risk_assessment"],
-            recommendations=r["recommendations"],
-            summary=r["summary"]
+            id=str(r.get("_id") or r.get("id")),
+            user_id=str(r["user_id"]),
+            title=str(r["title"]),
+            file_name=str(r.get("file_name") or r.get("title")),
+            upload_date=str(r["upload_date"]),
+            raw_text=str(r.get("raw_text", "")),
+            biomarkers=r.get("biomarkers", {}),
+            health_score=int(r.get("health_score", 90)),
+            risk_assessment=r.get("risk_assessment", []),
+            recommendations=r.get("recommendations", []),
+            summary=str(r.get("summary", ""))
         ) for r in reports
     ]
 
@@ -64,15 +64,15 @@ async def get_report(report_id: str, current_user: UserResponse = Depends(get_cu
     if not r:
         raise HTTPException(status_code=404, detail="Medical report not found.")
     return ReportResponse(
-        id=r["_id"],
-        user_id=r["user_id"],
-        title=r["title"],
-        file_name=r["file_name"],
-        upload_date=r["upload_date"],
-        raw_text=r["raw_text"],
-        biomarkers=r["biomarkers"],
-        health_score=r["health_score"],
-        risk_assessment=r["risk_assessment"],
-        recommendations=r["recommendations"],
-        summary=r["summary"]
+        id=str(r.get("_id") or r.get("id")),
+        user_id=str(r["user_id"]),
+        title=str(r["title"]),
+        file_name=str(r.get("file_name") or r.get("title")),
+        upload_date=str(r["upload_date"]),
+        raw_text=str(r.get("raw_text", "")),
+        biomarkers=r.get("biomarkers", {}),
+        health_score=int(r.get("health_score", 90)),
+        risk_assessment=r.get("risk_assessment", []),
+        recommendations=r.get("recommendations", []),
+        summary=str(r.get("summary", ""))
     )

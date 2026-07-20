@@ -1,5 +1,6 @@
 import logging
 import asyncpg
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.config.settings import settings
 from app.db.models import Base
@@ -61,6 +62,23 @@ async def connect_to_postgres():
         # Test connection & auto-create tables
         async with db_instance.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
+            
+            # Auto-migrate missing columns and expand column types in pre-existing PostgreSQL tables
+            migrations = [
+                "ALTER TABLE reports ADD COLUMN IF NOT EXISTS file_name VARCHAR(500)",
+                "ALTER TABLE reports ADD COLUMN IF NOT EXISTS raw_text TEXT",
+                "ALTER TABLE health_records ALTER COLUMN id TYPE VARCHAR(255)",
+                "ALTER TABLE health_records ALTER COLUMN report_id TYPE VARCHAR(255)",
+                "ALTER TABLE reports ALTER COLUMN id TYPE VARCHAR(255)",
+                "ALTER TABLE users ALTER COLUMN id TYPE VARCHAR(255)",
+                "ALTER TABLE medicines ALTER COLUMN id TYPE VARCHAR(255)",
+                "ALTER TABLE reminder_history ALTER COLUMN id TYPE VARCHAR(255)",
+            ]
+            for query in migrations:
+                try:
+                    await conn.execute(text(query))
+                except Exception as ex:
+                    logger.debug(f"Migration statement skipped: {query} -> {ex}")
 
         db_instance.is_connected = True
         logger.info(f"Successfully connected to PostgreSQL database: '{settings.POSTGRES_DB}' at {settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}")

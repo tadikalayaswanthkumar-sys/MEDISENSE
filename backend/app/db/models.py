@@ -12,14 +12,14 @@ def generate_uuid() -> str:
 class User(Base):
     __tablename__ = "users"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, default=generate_uuid)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(String(50), default="Doctor")
+    hashed_password: Mapped[str] = mapped_column(Text, nullable=False)
+    role: Mapped[str] = mapped_column(String(100), default="Doctor")
     avatar: Mapped[str] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[str] = mapped_column(String(100), default=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         return {
@@ -37,12 +37,14 @@ class User(Base):
 class MedicalReport(Base):
     __tablename__ = "reports"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True, nullable=False)
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, default=generate_uuid)
+    user_id: Mapped[str] = mapped_column(String(255), ForeignKey("users.id"), index=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    file_name: Mapped[str] = mapped_column(String(500), nullable=True)
     file_path: Mapped[str] = mapped_column(Text, nullable=True)
-    file_type: Mapped[str] = mapped_column(String(50), nullable=True)
-    upload_date: Mapped[str] = mapped_column(String(100), default=lambda: datetime.now(timezone.utc).isoformat())
+    file_type: Mapped[str] = mapped_column(String(100), nullable=True)
+    upload_date: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
+    raw_text: Mapped[str] = mapped_column(Text, nullable=True)
     health_score: Mapped[int] = mapped_column(Integer, default=90)
     biomarkers: Mapped[dict] = mapped_column(JSON, default=dict)
     risk_assessment: Mapped[list] = mapped_column(JSON, default=list)
@@ -55,9 +57,11 @@ class MedicalReport(Base):
             "id": self.id,
             "user_id": self.user_id,
             "title": self.title,
-            "file_path": self.file_path,
-            "file_type": self.file_type,
+            "file_name": self.file_name or self.title,
+            "file_path": self.file_path or "",
+            "file_type": self.file_type or "text/plain",
             "upload_date": self.upload_date,
+            "raw_text": self.raw_text or "",
             "health_score": self.health_score,
             "biomarkers": self.biomarkers or {},
             "risk_assessment": self.risk_assessment or [],
@@ -68,13 +72,13 @@ class MedicalReport(Base):
 class HealthRecord(Base):
     __tablename__ = "health_records"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True, nullable=False)
-    report_id: Mapped[str] = mapped_column(String(36), ForeignKey("reports.id"), nullable=True)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, default=generate_uuid)
+    user_id: Mapped[str] = mapped_column(String(255), ForeignKey("users.id"), index=True, nullable=False)
+    report_id: Mapped[str] = mapped_column(String(255), ForeignKey("reports.id"), nullable=True)
     health_score: Mapped[int] = mapped_column(Integer, default=90)
     risk_assessment: Mapped[list] = mapped_column(JSON, default=list)
     biomarkers: Mapped[dict] = mapped_column(JSON, default=dict)
-    created_at: Mapped[str] = mapped_column(String(100), default=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         return {
@@ -91,15 +95,15 @@ class HealthRecord(Base):
 class Medicine(Base):
     __tablename__ = "medicines"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True, nullable=False)
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, default=generate_uuid)
+    user_id: Mapped[str] = mapped_column(String(255), ForeignKey("users.id"), index=True, nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    dosage: Mapped[str] = mapped_column(String(100), nullable=False)
-    frequency: Mapped[str] = mapped_column(String(100), nullable=False)
+    dosage: Mapped[str] = mapped_column(String(255), nullable=False)
+    frequency: Mapped[str] = mapped_column(String(255), nullable=False)
     times: Mapped[list] = mapped_column(JSON, default=list)
     instructions: Mapped[str] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[str] = mapped_column(String(100), default=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         return {
@@ -118,11 +122,11 @@ class Medicine(Base):
 class ReminderHistory(Base):
     __tablename__ = "reminder_history"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=generate_uuid)
-    user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id"), index=True, nullable=False)
-    medicine_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    status: Mapped[str] = mapped_column(String(50), nullable=False)
-    timestamp: Mapped[str] = mapped_column(String(100), default=lambda: datetime.now(timezone.utc).isoformat())
+    id: Mapped[str] = mapped_column(String(255), primary_key=True, default=generate_uuid)
+    user_id: Mapped[str] = mapped_column(String(255), ForeignKey("users.id"), index=True, nullable=False)
+    medicine_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(String(100), nullable=False)
+    timestamp: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         return {

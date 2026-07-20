@@ -5,7 +5,9 @@ class OCRService:
     @staticmethod
     def extract_lab_values(text: str) -> dict:
         biomarkers = {}
-        
+        if not text:
+            return biomarkers
+
         patterns = {
             "glucose": r"(?:glucose|fasting blood sugar|fbs)\s*[:=\-]?\s*(\d+(?:\.\d+)?)\s*(mg/dl|mmol/l)?",
             "cholesterol": r"(?:total cholesterol|cholesterol)\s*[:=\-]?\s*(\d+(?:\.\d+)?)\s*(mg/dl)?",
@@ -35,17 +37,25 @@ class OCRService:
         
         if filename_lower.endswith(".pdf"):
             text = extract_text_from_pdf(file_bytes)
+        elif any(filename_lower.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif", ".tiff"]):
+            # For image files, avoid binary string corruption
+            text = f"Medical report image uploaded: {filename}"
         else:
-            # For image files or plain text fallback
+            # Plain text files
             try:
                 text = file_bytes.decode("utf-8", errors="ignore")
             except Exception:
                 text = ""
 
+        # Remove null bytes (\x00) which PostgreSQL strictly disallows in UTF-8 text fields
+        clean_text = text.replace("\x00", "").replace("\u0000", "").strip() if text else ""
+        if not clean_text:
+            clean_text = f"Medical lab report uploaded: {filename}"
+
         # Extracted biomarkers map
-        extracted_biomarkers = OCRService.extract_lab_values(text)
+        extracted_biomarkers = OCRService.extract_lab_values(clean_text)
         
         return {
-            "raw_text": text[:2000] if text else "Medical lab report uploaded successfully.",
+            "raw_text": clean_text[:2000],
             "biomarkers": extracted_biomarkers
         }

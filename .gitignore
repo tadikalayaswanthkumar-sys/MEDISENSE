@@ -3,8 +3,8 @@ venv/
 .venv/
 env/
 ENV/
-server/venv/
-server/.venv/
+backend/venv/
+backend/.venv/
 
 # Python
 __pycache__/
@@ -31,26 +31,26 @@ wheels/
 
 # Node / Frontend
 node_modules/
-client/node_modules/
-client/dist/
-client/.vite/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 .npm
 *.log
 
 # Logs & Media
 *.log
-server/app/logs/*.log
-!server/app/logs/.gitkeep
-server/app/media/uploads/*
-!server/app/media/uploads/.gitkeep
-server/app/media/temp/*
-!server/app/media/temp/.gitkeep
+backend/app/logs/*.log
+!backend/app/logs/.gitkeep
+backend/app/media/uploads/*
+!backend/app/media/uploads/.gitkeep
+backend/app/media/temp/*
+!backend/app/media/temp/.gitkeep
 
 # Environment variables
 .env
 .env.local
 .env.*.local
-server/.env
+backend/.env
 
 # IDE / OS
 .vscode/

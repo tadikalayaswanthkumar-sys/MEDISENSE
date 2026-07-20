@@ -76,3 +76,11 @@ async def get_report(report_id: str, current_user: UserResponse = Depends(get_cu
         recommendations=r.get("recommendations", []),
         summary=str(r.get("summary", ""))
     )
+
+@router.delete("/{report_id}", status_code=status.HTTP_200_OK)
+async def delete_report(report_id: str, current_user: UserResponse = Depends(get_current_user)):
+    """Deletes a medical report from user history."""
+    deleted = await MedicalReportRepository.delete_report_by_id(report_id, current_user.id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Medical report not found or unauthorized.")
+    return {"message": "Report deleted successfully", "id": report_id}

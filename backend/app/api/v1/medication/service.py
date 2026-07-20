@@ -8,6 +8,7 @@ class MedicationService:
     async def add_medicine(payload: MedicineCreate, user_id: str) -> dict:
         med_doc = {
             "_id": str(uuid.uuid4()),
+            "id": str(uuid.uuid4()),
             "user_id": user_id,
             "name": payload.name,
             "dosage": payload.dosage,
@@ -24,12 +25,14 @@ class MedicationService:
         medicines = await MedicationRepository.get_user_medicines(user_id)
         med_name = "Prescription Pill"
         for m in medicines:
-            if m["_id"] == med_id:
-                med_name = f"{m['name']} ({m['dosage']})"
+            m_id = str(m.get("_id") or m.get("id"))
+            if m_id == med_id:
+                med_name = f"{m.get('name', '')} ({m.get('dosage', '')})"
                 break
                 
         log_doc = {
             "_id": str(uuid.uuid4()),
+            "id": str(uuid.uuid4()),
             "user_id": user_id,
             "medicine_id": med_id,
             "medicine_name": med_name,

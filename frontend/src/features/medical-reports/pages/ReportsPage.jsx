@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Upload, Sparkles, AlertCircle, CheckCircle2, FileUp, Loader2, Info, ChevronRight, Activity } from 'lucide-react';
+import { FileText, Upload, Sparkles, AlertCircle, CheckCircle2, FileUp, Loader2, Info, ChevronRight, Activity, Trash2 } from 'lucide-react';
 import apiClient from '@/shared/api/axios';
 import Card from '@/shared/components/ui/Card';
 import Button from '@/shared/components/ui/Button';
@@ -11,6 +11,7 @@ export const ReportsPage = () => {
   const [title, setTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedReport, setSelectedReport] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
@@ -63,6 +64,27 @@ export const ReportsPage = () => {
       setError(err.response?.data?.detail || 'Failed to process medical report.');
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleDeleteReport = async (reportId, e) => {
+    if (e) e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this report from your history?')) {
+      return;
+    }
+
+    setDeletingId(reportId);
+    try {
+      await apiClient.delete(`/reports/${reportId}`);
+      setSuccessMsg('Report deleted successfully.');
+      if (selectedReport && selectedReport.id === reportId) {
+        setSelectedReport(null);
+      }
+      fetchReports();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to delete medical report.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -155,7 +177,7 @@ export const ReportsPage = () => {
               {reports.map((report) => (
                 <Card
                   key={report.id}
-                  className="hover:border-teal-400 transition-all cursor-pointer"
+                  className="hover:border-teal-400 transition-all cursor-pointer group relative"
                   onClick={() => setSelectedReport(report)}
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -174,6 +196,19 @@ export const ReportsPage = () => {
                         <span className="text-xs font-bold text-slate-400 block">Health Score</span>
                         <span className="text-lg font-extrabold text-teal-700">{report.health_score}/100</span>
                       </div>
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteReport(report.id, e)}
+                        disabled={deletingId === report.id}
+                        title="Delete Report"
+                        className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                      >
+                        {deletingId === report.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-rose-600" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
                       <ChevronRight className="h-5 w-5 text-slate-400" />
                     </div>
                   </div>
@@ -193,12 +228,22 @@ export const ReportsPage = () => {
                 <h3 className="text-xl font-bold text-slate-900">{selectedReport.title}</h3>
                 <p className="text-xs text-slate-500">Uploaded on {new Date(selectedReport.upload_date).toLocaleString()}</p>
               </div>
-              <button
-                onClick={() => setSelectedReport(null)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-sm font-bold"
-              >
-                ✕
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteReport(selectedReport.id)}
+                  title="Delete Report"
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 text-xs font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" /> Delete
+                </button>
+                <button
+                  onClick={() => setSelectedReport(null)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             {/* AI Health Score Banner */}
@@ -238,7 +283,7 @@ export const ReportsPage = () => {
                   {Object.entries(selectedReport.biomarkers).map(([key, val]) => (
                     <div key={key} className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
                       <span className="text-slate-500 capitalize block">{key}</span>
-                      <span className="font-bold text-slate-800">{val.val} {val.unit}</span>
+                      <span className="font-bold text-slate-800">{val.val || val.value} {val.unit}</span>
                     </div>
                   ))}
                 </div>

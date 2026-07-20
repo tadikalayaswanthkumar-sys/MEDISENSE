@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Mail, Lock, Shield, AlertCircle, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { User, Mail, Lock, AlertCircle, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuthContext } from '@/app/providers';
 import Button from '@/shared/components/ui/Button';
 
@@ -8,7 +8,6 @@ export const RegisterPage = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Doctor');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +21,7 @@ export const RegisterPage = () => {
     setIsSubmitting(true);
 
     try {
-      await register(name, email, password, role);
+      await register(name, email, password, 'User');
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed. Please try again.');
@@ -47,7 +46,7 @@ export const RegisterPage = () => {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-600">Full Name</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-600 font-sans">Full Name</label>
           <div className="relative">
             <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
@@ -55,14 +54,14 @@ export const RegisterPage = () => {
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Dr. Alex Vance"
+              placeholder="Alex Vance"
               className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all font-medium"
             />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-600">Email Address</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-600 font-sans">Email Address</label>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input
@@ -77,23 +76,7 @@ export const RegisterPage = () => {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-600">Account Role</label>
-          <div className="relative">
-            <Shield className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:bg-white focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all font-medium appearance-none"
-            >
-              <option value="Doctor">Doctor / Healthcare Specialist</option>
-              <option value="Patient">Patient / Individual User</option>
-              <option value="Researcher">Medical Researcher</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-600">Password</label>
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-600 font-sans">Password</label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <input

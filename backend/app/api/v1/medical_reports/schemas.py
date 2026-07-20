@@ -13,3 +13,8 @@ class ReportResponse(BaseModel):
     risk_assessment: List[Dict[str, Any]]
     recommendations: List[str]
     summary: str
+    abnormal_findings: Optional[List[Dict[str, Any]]] = []
+    normal_findings: Optional[List[Dict[str, Any]]] = []
+    clinical_evidence: Optional[List[Dict[str, Any]]] = []
+    retrieval_scores: Optional[List[Dict[str, Any]]] = []
+    confidence_score: Optional[float] = 0.95

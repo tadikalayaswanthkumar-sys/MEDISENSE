@@ -16,7 +16,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(Text, nullable=False)
-    role: Mapped[str] = mapped_column(String(100), default="Doctor")
+    role: Mapped[str] = mapped_column(String(100), default="User")
     avatar: Mapped[str] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
@@ -125,6 +125,7 @@ class ReminderHistory(Base):
     id: Mapped[str] = mapped_column(String(255), primary_key=True, default=generate_uuid)
     user_id: Mapped[str] = mapped_column(String(255), ForeignKey("users.id"), index=True, nullable=False)
     medicine_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    medicine_name: Mapped[str] = mapped_column(String(255), nullable=True, default="Prescription Pill")
     status: Mapped[str] = mapped_column(String(100), nullable=False)
     timestamp: Mapped[str] = mapped_column(String(255), default=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -134,6 +135,7 @@ class ReminderHistory(Base):
             "id": self.id,
             "user_id": self.user_id,
             "medicine_id": self.medicine_id,
+            "medicine_name": self.medicine_name or "Prescription Pill",
             "status": self.status,
             "timestamp": self.timestamp
         }

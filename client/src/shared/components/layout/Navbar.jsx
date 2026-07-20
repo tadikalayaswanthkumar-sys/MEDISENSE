@@ -1,9 +1,9 @@
 import React from 'react';
-import { Activity, Bell, Search, ShieldCheck } from 'lucide-react';
+import { Activity, Bell, Search, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuthContext } from '@/app/providers';
 
 export const Navbar = () => {
-  const { user } = useAuthContext() || {};
+  const { user, logout } = useAuthContext() || {};
 
   return (
     <header className="sticky top-0 z-40 w-full glass-panel border-b border-slate-200/80 px-6 py-3 flex items-center justify-between shadow-sm">
@@ -49,9 +49,17 @@ export const Navbar = () => {
           <div className="hidden sm:block text-left">
             <p className="text-sm font-bold text-slate-800 leading-tight">{user?.name || 'Dr. Alex Vance'}</p>
             <p className="text-xs text-teal-600 font-semibold flex items-center gap-1">
-              <ShieldCheck className="h-3 w-3 inline text-teal-600" /> Verified MD
+              <ShieldCheck className="h-3 w-3 inline text-teal-600" /> {user?.role || 'Verified MD'}
             </p>
           </div>
+
+          <button
+            onClick={logout}
+            title="Sign Out"
+            className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </header>

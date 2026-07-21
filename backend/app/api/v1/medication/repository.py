@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from app.config.database import db_instance
 from app.db.models import Medicine, ReminderHistory
 
@@ -46,6 +46,32 @@ class MedicationRepository:
             return [m for m in db_instance.in_memory_store["medicines"].values() if m.get("user_id") == user_id and m.get("is_active", True)]
 
     @staticmethod
+    async def delete_medicine_by_id(med_id: str, user_id: str) -> bool:
+        """Deletes or deactivates a prescription medicine for a user."""
+        if db_instance.is_connected and db_instance.session_factory is not None:
+            async with db_instance.session_factory() as session:
+                await session.execute(
+                    delete(ReminderHistory).where(
+                        ReminderHistory.medicine_id == med_id,
+                        ReminderHistory.user_id == user_id
+                    )
+                )
+                result = await session.execute(
+                    delete(Medicine).where(
+                        Medicine.id == med_id,
+                        Medicine.user_id == user_id
+                    )
+                )
+                await session.commit()
+                return result.rowcount > 0
+        else:
+            if "medicines" in db_instance.in_memory_store:
+                if med_id in db_instance.in_memory_store["medicines"]:
+                    del db_instance.in_memory_store["medicines"][med_id]
+                    return True
+            return False
+
+    @staticmethod
     async def log_reminder(reminder_doc: dict) -> dict:
         if db_instance.is_connected and db_instance.session_factory is not None:
             async with db_instance.session_factory() as session:
@@ -54,6 +80,7 @@ class MedicationRepository:
                     id=reminder_id,
                     user_id=reminder_doc["user_id"],
                     medicine_id=reminder_doc["medicine_id"],
+                    medicine_name=reminder_doc.get("medicine_name", "Prescription Pill"),
                     status=reminder_doc["status"],
                     timestamp=reminder_doc.get("timestamp")
                 )

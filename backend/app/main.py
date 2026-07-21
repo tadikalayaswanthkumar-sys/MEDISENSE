@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.database import connect_to_postgres, close_postgres_connection
 from app.api.v1.auth.router import router as auth_router
@@ -38,6 +38,10 @@ app.include_router(dashboard_router, prefix="/api/v1")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to MediSense AI API", "status": "online"}
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.get("/api/v1/health")
 def health_check():

@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from app.config.database import db_instance
 from app.db.models import MedicalReport, HealthRecord
 
@@ -24,7 +24,6 @@ class MedicalReportRepository:
                     summary=report_doc.get("summary", "")
                 )
                 session.add(report)
-                # Flush report first so PostgreSQL foreign key constraint is satisfied for health_record
                 await session.flush()
 
                 health_record = HealthRecord(
@@ -83,3 +82,31 @@ class MedicalReportRepository:
             if report and report.get("user_id") == user_id:
                 return report
             return None
+
+    @staticmethod
+    async def delete_report_by_id(report_id: str, user_id: str) -> bool:
+        """Deletes a medical report and its child health record by report_id."""
+        if db_instance.is_connected and db_instance.session_factory is not None:
+            async with db_instance.session_factory() as session:
+                # 1. Delete linked health records first
+                await session.execute(
+                    delete(HealthRecord).where(
+                        HealthRecord.report_id == report_id,
+                        HealthRecord.user_id == user_id
+                    )
+                )
+                # 2. Delete the parent medical report
+                result = await session.execute(
+                    delete(MedicalReport).where(
+                        MedicalReport.id == report_id,
+                        MedicalReport.user_id == user_id
+                    )
+                )
+                await session.commit()
+                return result.rowcount > 0
+        else:
+            if "reports" in db_instance.in_memory_store:
+                if report_id in db_instance.in_memory_store["reports"]:
+                    del db_instance.in_memory_store["reports"][report_id]
+                    return True
+            return False

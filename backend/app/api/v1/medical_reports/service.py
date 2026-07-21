@@ -7,10 +7,10 @@ from app.api.v1.medical_reports.repository import MedicalReportRepository
 class MedicalReportService:
     @staticmethod
     async def process_and_save_report(file_bytes: bytes, filename: str, title: str, user_id: str) -> dict:
-        # Step 1: Run OCR service text & biomarker extraction
-        ocr_result = OCRService.process_file_content(file_bytes, filename)
+        # Step 1: Run OCR service text & biomarker extraction using title, filename & bytes
+        ocr_result = OCRService.process_file_content(file_bytes, filename, title or "")
         
-        # Step 2: Run Gemini AI disease risk prediction & health scoring
+        # Step 2: Run RAG-augmented AI disease risk prediction & health scoring
         ai_result = GeminiService.analyze_report(ocr_result["biomarkers"], ocr_result["raw_text"])
         
         # Step 3: Construct Document & save to Database

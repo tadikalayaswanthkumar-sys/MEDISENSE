@@ -67,6 +67,7 @@ async def connect_to_postgres():
             migrations = [
                 "ALTER TABLE reports ADD COLUMN IF NOT EXISTS file_name VARCHAR(500)",
                 "ALTER TABLE reports ADD COLUMN IF NOT EXISTS raw_text TEXT",
+                "ALTER TABLE reminder_history ADD COLUMN IF NOT EXISTS medicine_name VARCHAR(255)",
                 "ALTER TABLE health_records ALTER COLUMN id TYPE VARCHAR(255)",
                 "ALTER TABLE health_records ALTER COLUMN report_id TYPE VARCHAR(255)",
                 "ALTER TABLE reports ALTER COLUMN id TYPE VARCHAR(255)",
